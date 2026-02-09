@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control con Cámara del Teléfono</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f2f2f2;
+        }
+
+        /* JOYSTICK */
+        .joystick {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: #ddd;
+            position: relative;
+            touch-action: none;
+        }
+
+        .stick {
+            width: 60px;
+            height: 60px;
+            background: #0d6efd;
+            border-radius: 50%;
+            position: absolute;
+            top: 60px;
+            left: 60px;
+        }
+
+        /* CAMARA */
+        video {
+            width: 320px;
+            height: 240px;
+            background: black;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* BOTONES */
+        .arrow-btn {
+            width: 70px;
+            height: 70px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100 text-center align-items-center">
+
+        <!-- JOYSTICK -->
+        <div class="col-md-4 d-flex justify-content-center mb-3">
+            <div class="joystick" id="joystick">
+                <div class="stick" id="stick"></div>
+            </div>
+        </div>
+
+        <!-- CAMARA DEL TELEFONO -->
+        <div class="col-md-4 d-flex flex-column align-items-center mb-3">
+            <video id="camera" autoplay playsinline></video>
+            <small class="text-muted mt-2">
+                Cámara del teléfono activa
+            </small>
+        </div>
+
+        <!-- BOTONES -->
+        <div class="col-md-4 d-flex justify-content-center">
+            <div>
+                <div class="d-flex justify-content-center mb-2">
+                    <button class="btn btn-primary arrow-btn" onclick="mover('UP')">⬆️</button>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-primary arrow-btn" onclick="mover('LEFT')">⬅️</button>
+                    <button class="btn btn-primary arrow-btn" onclick="mover('RIGHT')">➡️</button>
+                </div>
+
+                <div class="d-flex justify-content-center mt-2">
+                    <button class="btn btn-primary arrow-btn" onclick="mover('DOWN')">⬇️</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* =========================
+   CAMARA DEL TELEFONO
+========================= */
+async function iniciarCamara() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }, // cámara trasera
+            audio: false
+        });
+        document.getElementById("camera").srcObject = stream;
+    } catch (error) {
+        alert("No se pudo acceder a la cámara");
+        console.error(error);
+    }
+}
+
+iniciarCamara();
+
+/* =========================
+   BOTONES (SIMULADO)
+========================= */
+function mover(dir) {
+    console.log("Mover:", dir);
+}
+
+/* =========================
+   JOYSTICK (TACTIL)
+========================= */
+const joystick = document.getElementById("joystick");
+const stick = document.getElementById("stick");
+
+let activo = false;
+const centro = 60;
+const max = 50;
+
+joystick.addEventListener("touchstart", () => activo = true);
+
+joystick.addEventListener("touchend", () => {
+    activo = false;
+    stick.style.left = centro + "px";
+    stick.style.top = centro + "px";
+    console.log("Giro: centro");
+});
+
+joystick.addEventListener("touchmove", (e) => {
+    if (!activo) return;
+
+    const touch = e.touches[0];
+    const r = joystick.getBoundingClientRect();
+
+    let x = touch.clientX - r.left - centro;
+    let y = touch.clientY - r.top - centro;
+
+    const d = Math.min(Math.sqrt(x*x + y*y), max);
+    const a = Math.atan2(y, x);
+
+    stick.style.left = centro + d * Math.cos(a) + "px";
+    stick.style.top = centro + d * Math.sin(a) + "px";
+
+    const grados = Math.round(a * 180 / Math.PI);
+    console.log("Giro:", grados);
+});
+</script>
+
+</body>
+</html>
